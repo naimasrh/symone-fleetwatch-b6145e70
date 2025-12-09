@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 100% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 100% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 100% 14%;
+
+    /* Symone Primary - Bleu marine #000047 */
+    --primary: 240 100% 14%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Symone Secondary - Violet #312783 */
+    --secondary: 250 54% 33%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 20% 95%;
+    --muted-foreground: 240 10% 50%;
+
+    /* Symone Turquoise - #44BBC3 */
+    --accent: 183 54% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Custom status colors - Symone palette */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    
+    /* Symone Magenta - #E6007E */
+    --danger: 327 100% 45%;
+    --danger-foreground: 0 0% 100%;
+    
+    /* Symone Turquoise for info */
+    --info: 183 54% 52%;
+    --info-foreground: 0 0% 100%;
+
+    /* Symone Magenta for destructive */
+    --destructive: 327 100% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 20% 85%;
+    --input: 240 20% 85%;
+    --ring: 240 100% 14%;
+
+    --radius: 0.5rem;
+
+    /* Sidebar - Symone Bleu marine */
+    --sidebar-background: 240 100% 14%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 250 54% 33%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 250 54% 33%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 240 100% 10%;
+    --sidebar-ring: 183 54% 52%;
+  }
+
+  .dark {
+    --background: 240 100% 10%;
+    --foreground: 0 0% 95%;
+
+    --card: 240 100% 12%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 240 100% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Symone Primary - lighter in dark mode */
+    --primary: 240 100% 20%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Symone Secondary - Violet */
+    --secondary: 250 54% 40%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 50% 15%;
+    --muted-foreground: 240 10% 60%;
+
+    /* Symone Turquoise - slightly brighter */
+    --accent: 183 54% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Custom status colors - Symone palette dark mode */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 38 92% 60%;
+    --warning-foreground: 0 0% 100%;
+    
+    /* Symone Magenta - brighter */
+    --danger: 327 100% 55%;
+    --danger-foreground: 0 0% 100%;
+    
+    /* Symone Turquoise for info */
+    --info: 183 54% 60%;
+    --info-foreground: 0 0% 100%;
+
+    /* Symone Magenta for destructive */
+    --destructive: 327 100% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 50% 20%;
+    --input: 240 50% 20%;
+    --ring: 240 100% 30%;
+
+    /* Sidebar - Symone Bleu marine dark */
+    --sidebar-background: 240 100% 12%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 250 54% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 250 54% 38%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 240 100% 10%;
+    --sidebar-ring: 183 54% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
