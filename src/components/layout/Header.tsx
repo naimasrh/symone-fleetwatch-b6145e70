@@ -1,6 +1,5 @@
-import { Bell } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { NotificationDropdown } from "./NotificationDropdown";
 import { fr } from "date-fns/locale";
 
 export const Header = () => {
@@ -21,15 +20,7 @@ export const Header = () => {
             <p className="text-xs md:text-sm text-white/70 capitalize">{today}</p>
           </div>
           
-          <div className="relative">
-            <Bell className="h-5 w-5 text-white/70 cursor-pointer hover:text-white transition-colors" />
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 flex items-center justify-center p-0 text-[10px] md:text-xs"
-            >
-              3
-            </Badge>
-          </div>
+          <NotificationDropdown />
         </div>
       </div>
     </header>
