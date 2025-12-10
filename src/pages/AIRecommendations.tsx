@@ -17,7 +17,7 @@ interface Recommendation {
   status: string;
   sent_at: string | null;
   created_at: string;
-  missions: {
+  mission_enriched: {
     id: string;
     origin: string;
     destination: string;
@@ -30,9 +30,9 @@ interface Recommendation {
     actual_end: string | null;
     driver_id: string;
     vehicle_id: string;
-    drivers: { name: string };
-    vehicles: { plate_number: string };
-  };
+    driver_name: string | null;
+    plate_number: string | null;
+  } | null;
 }
 
 interface MissionForDialog {
@@ -95,11 +95,12 @@ const AIRecommendations = () => {
     const twentyFourHoursAgo = new Date();
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
+    // Use the enriched view which already has driver_name and plate_number
     const { data, error } = await supabase
       .from('ai_recommendations')
       .select(`
         *,
-        missions (
+        mission_enriched!ai_recommendations_mission_id_fkey (
           id,
           origin,
           destination,
@@ -112,8 +113,8 @@ const AIRecommendations = () => {
           actual_end,
           driver_id,
           vehicle_id,
-          drivers (name),
-          vehicles (plate_number)
+          driver_name,
+          plate_number
         )
       `)
       .gte('created_at', twentyFourHoursAgo.toISOString())
@@ -147,7 +148,9 @@ const AIRecommendations = () => {
   };
 
   const handleViewMission = (recommendation: Recommendation) => {
-    const mission = recommendation.missions;
+    const mission = recommendation.mission_enriched;
+    if (!mission) return;
+    
     setSelectedMission({
       id: mission.id,
       origin_address: mission.origin,
