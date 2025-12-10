@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-external";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import RecommendationFilters from "@/components/recommendations/RecommendationFilters";
 import RecommendationCard from "@/components/recommendations/RecommendationCard";
+import MissionDetailsDialog from "@/components/missions/MissionDetailsDialog";
 
 interface Recommendation {
   id: string;
@@ -16,12 +16,21 @@ interface Recommendation {
   status: string;
   sent_at: string | null;
   created_at: string;
-  missions: {
-    origin: string;
-    destination: string;
-    drivers: { name: string };
-    vehicles: { plate_number: string };
-  };
+}
+
+interface Mission {
+  id: string;
+  origin_address: string;
+  destination_address: string;
+  status: string;
+  delay_minutes: number;
+  distance_km: number;
+  scheduled_start: string;
+  actual_start: string | null;
+  scheduled_end: string;
+  actual_end: string | null;
+  driver_id: string;
+  vehicle_id: string;
 }
 
 const AIRecommendations = () => {
@@ -31,6 +40,10 @@ const AIRecommendations = () => {
   const [selectedPriority, setSelectedPriority] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
+  
+  // Dialog state
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchRecommendations();
@@ -61,29 +74,19 @@ const AIRecommendations = () => {
   }, [recommendations, selectedPriority, selectedStatus, selectedType]);
 
   const fetchRecommendations = async () => {
+    // Récupérer uniquement les recommandations des dernières 24h
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
     const { data, error } = await supabase
       .from('ai_recommendations')
-      .select(`
-        *,
-        missions (
-          origin,
-          destination,
-          drivers (name),
-          vehicles (plate_number)
-        )
-      `)
+      .select('id, mission_id, type, message, impact, priority, status, sent_at, created_at')
+      .gte('created_at', twentyFourHoursAgo)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('❌ RECOMMENDATIONS ERROR - Détails complets:', {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code,
-        fullError: error
-      });
+      console.error('❌ RECOMMENDATIONS ERROR:', error);
     } else {
-      console.log(`✅ Fetched ${data?.length || 0} recommendations`);
+      console.log(`✅ Fetched ${data?.length || 0} recommendations (last 24h)`);
       setRecommendations(data || []);
     }
     setIsLoading(false);
@@ -107,24 +110,46 @@ const AIRecommendations = () => {
     setFilteredRecommendations(filtered);
   };
 
-  // Group recommendations by mission
-  const groupedRecommendations = filteredRecommendations.reduce((acc, rec) => {
-    const key = `${rec.missions.origin} → ${rec.missions.destination}`;
-    if (!acc[key]) {
-      acc[key] = [];
+  const handleViewMission = async (missionId: string) => {
+    // Fetch mission details from mission_enriched view
+    const { data, error } = await supabase
+      .from('mission_enriched')
+      .select('*')
+      .eq('id', missionId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching mission:', error);
+      return;
     }
-    acc[key].push(rec);
-    return acc;
-  }, {} as Record<string, Recommendation[]>);
+
+    if (data) {
+      setSelectedMission({
+        id: data.id,
+        origin_address: data.origin || '',
+        destination_address: data.destination || '',
+        status: data.status || 'planned',
+        delay_minutes: data.delay_minutes || 0,
+        distance_km: data.distance_km || 0,
+        scheduled_start: data.scheduled_start || '',
+        actual_start: data.actual_start,
+        scheduled_end: data.scheduled_end || '',
+        actual_end: data.actual_end,
+        driver_id: data.driver_id || '',
+        vehicle_id: data.vehicle_id || '',
+      });
+      setDialogOpen(true);
+    }
+  };
 
   if (isLoading) {
     return (
       <div className="p-3 md:p-6 space-y-4">
         <Skeleton className="h-8 w-48 md:w-64" />
         <Skeleton className="h-10 w-full" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <Skeleton key={i} className="h-56 md:h-64" />
+        <div className="space-y-4">
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} className="h-48" />
           ))}
         </div>
       </div>
@@ -137,7 +162,7 @@ const AIRecommendations = () => {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Recommandations IA</h1>
           <p className="text-xs md:text-sm text-muted-foreground mt-1">
-            Recommandations générées automatiquement pour optimiser les missions
+            Recommandations générées automatiquement (dernières 24h)
           </p>
         </div>
         <Badge variant="outline" className="text-sm md:text-lg px-3 md:px-4 py-1 justify-center">
@@ -157,25 +182,26 @@ const AIRecommendations = () => {
       {filteredRecommendations.length === 0 ? (
         <div className="text-center py-8 md:py-12">
           <p className="text-muted-foreground text-base md:text-lg">Aucune recommandation trouvée</p>
+          <p className="text-muted-foreground text-sm mt-2">Les recommandations apparaissent ici pendant 24h après leur création</p>
         </div>
       ) : (
-        <div className="space-y-6 md:space-y-8">
-          {Object.entries(groupedRecommendations).map(([missionKey, recs]) => (
-            <div key={missionKey}>
-              <h2 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">{missionKey}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                {recs.map((rec) => (
-                  <RecommendationCard
-                    key={rec.id}
-                    recommendation={rec}
-                    onUpdate={fetchRecommendations}
-                  />
-                ))}
-              </div>
-            </div>
+        <div className="space-y-4">
+          {filteredRecommendations.map((rec) => (
+            <RecommendationCard
+              key={rec.id}
+              recommendation={rec}
+              onUpdate={fetchRecommendations}
+              onViewMission={handleViewMission}
+            />
           ))}
         </div>
       )}
+
+      <MissionDetailsDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        mission={selectedMission}
+      />
     </div>
   );
 };
