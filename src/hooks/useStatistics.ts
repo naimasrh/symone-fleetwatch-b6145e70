@@ -116,35 +116,42 @@ export const useStatistics = (): Statistics => {
           console.log(`✅ Fetched ${last7Days?.length || 0} daily statistics`);
         }
 
-        // Fetch top 5 vehicles by kilometers
-        const { data: vehiclesData, error: vehiclesError } = await supabase
+        // Fetch missions and vehicles separately (no FK relationship)
+        const { data: missionsForVehicles, error: missionsVehiclesError } = await supabase
           .from('missions')
-          .select('vehicle_id, distance_km, vehicles(plate_number, type)')
-          .not('vehicles', 'is', null);
+          .select('vehicle_id, distance_km');
 
+        const { data: vehiclesData, error: vehiclesError } = await supabase
+          .from('vehicles')
+          .select('id, plate_number, type');
+
+        if (missionsVehiclesError) {
+          console.error('❌ STATISTICS ERROR (missions for vehicles):', missionsVehiclesError);
+        }
         if (vehiclesError) {
-          console.error('❌ STATISTICS ERROR (vehicles):', {
-            message: vehiclesError.message,
-            details: vehiclesError.details,
-            hint: vehiclesError.hint,
-            code: vehiclesError.code,
-            fullError: vehiclesError
-          });
+          console.error('❌ STATISTICS ERROR (vehicles):', vehiclesError);
         } else {
           console.log(`✅ Fetched vehicle data for statistics`);
         }
 
+        // Create a map of vehicle_id -> vehicle info
+        const vehicleInfoMap = new Map<string, { plate_number: string; type: string }>();
+        (vehiclesData || []).forEach((v: any) => {
+          vehicleInfoMap.set(v.id, { plate_number: v.plate_number, type: v.type });
+        });
+
         const vehicleMap = new Map<string, { plate_number: string; type: string; total_km: number }>();
-        (vehiclesData || []).forEach((mission: any) => {
-          if (mission.vehicles) {
-            const key = mission.vehicles.plate_number;
+        (missionsForVehicles || []).forEach((mission: any) => {
+          const vehicleInfo = vehicleInfoMap.get(mission.vehicle_id);
+          if (vehicleInfo) {
+            const key = vehicleInfo.plate_number;
             const existing = vehicleMap.get(key);
             if (existing) {
               existing.total_km += mission.distance_km;
             } else {
               vehicleMap.set(key, {
-                plate_number: mission.vehicles.plate_number,
-                type: mission.vehicles.type,
+                plate_number: vehicleInfo.plate_number,
+                type: vehicleInfo.type,
                 total_km: mission.distance_km
               });
             }
@@ -183,34 +190,40 @@ export const useStatistics = (): Statistics => {
           count
         }));
 
-        // Fetch driver delays
-        const { data: driversData, error: driversError } = await supabase
+        // Fetch driver delays (separate queries - no FK relationship)
+        const { data: missionsForDrivers, error: missionsDriversError } = await supabase
           .from('missions')
-          .select('driver_id, delay_minutes, drivers(name)')
-          .not('drivers', 'is', null);
+          .select('driver_id, delay_minutes');
 
+        const { data: driversData, error: driversError } = await supabase
+          .from('drivers')
+          .select('id, name');
+
+        if (missionsDriversError) {
+          console.error('❌ STATISTICS ERROR (missions for drivers):', missionsDriversError);
+        }
         if (driversError) {
-          console.error('❌ STATISTICS ERROR (driver delays):', {
-            message: driversError.message,
-            details: driversError.details,
-            hint: driversError.hint,
-            code: driversError.code,
-            fullError: driversError
-          });
+          console.error('❌ STATISTICS ERROR (drivers):', driversError);
         } else {
           console.log(`✅ Fetched driver delay data`);
         }
 
+        // Create a map of driver_id -> driver name
+        const driverInfoMap = new Map<string, string>();
+        (driversData || []).forEach((d: any) => {
+          driverInfoMap.set(d.id, d.name);
+        });
+
         const driverMap = new Map<string, { driver_name: string; delays: number[]; }>();
-        (driversData || []).forEach((mission: any) => {
-          if (mission.drivers && mission.delay_minutes !== null) {
-            const key = mission.drivers.name;
-            const existing = driverMap.get(key);
+        (missionsForDrivers || []).forEach((mission: any) => {
+          const driverName = driverInfoMap.get(mission.driver_id);
+          if (driverName && mission.delay_minutes !== null) {
+            const existing = driverMap.get(driverName);
             if (existing) {
               existing.delays.push(mission.delay_minutes);
             } else {
-              driverMap.set(key, {
-                driver_name: mission.drivers.name,
+              driverMap.set(driverName, {
+                driver_name: driverName,
                 delays: [mission.delay_minutes]
               });
             }
