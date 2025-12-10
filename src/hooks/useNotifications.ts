@@ -17,11 +17,11 @@ export const useNotifications = () => {
 
   const fetchNotifications = async () => {
     try {
-      // Fetch delayed missions (in-progress with delay > 0)
+      // Fetch delayed missions (in-progress with delay > 0) - using missions table directly
       const { data: delayedMissions, error: delayError } = await supabase
-        .from('mission_enriched')
+        .from('missions')
         .select('*')
-        .eq('status', 'in-progress')
+        .eq('status', 'in_progress')
         .gt('delay_minutes', 0)
         .order('delay_minutes', { ascending: false });
 
@@ -29,9 +29,9 @@ export const useNotifications = () => {
 
       // Fetch planned missions
       const { data: plannedMissions, error: plannedError } = await supabase
-        .from('mission_enriched')
+        .from('missions')
         .select('*')
-        .eq('status', 'planned')
+        .eq('status', 'scheduled')
         .order('scheduled_start', { ascending: true });
 
       if (plannedError) throw plannedError;
@@ -40,7 +40,7 @@ export const useNotifications = () => {
         id: `delay-${mission.id}`,
         type: 'delay' as const,
         title: 'Mission en retard',
-        message: `${mission.origin} → ${mission.destination} : ${mission.delay_minutes} min de retard`,
+        message: `${mission.origin_address} → ${mission.destination_address} : ${mission.delay_minutes} min de retard`,
         timestamp: new Date(mission.scheduled_start || Date.now()),
         missionId: mission.id!,
         delayMinutes: mission.delay_minutes || 0,
@@ -50,7 +50,7 @@ export const useNotifications = () => {
         id: `planned-${mission.id}`,
         type: 'planned' as const,
         title: 'Mission planifiée',
-        message: `${mission.origin} → ${mission.destination}`,
+        message: `${mission.origin_address} → ${mission.destination_address}`,
         timestamp: new Date(mission.created_at || Date.now()),
         missionId: mission.id!,
       }));

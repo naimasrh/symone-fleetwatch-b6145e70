@@ -5,10 +5,10 @@ import { supabase } from "@/lib/supabase-external";
 
 interface Statistics {
   total_km: number;
-  co2_saved: number;
-  total_delays_minutes: number;
-  missions_completed: number;
-  missions_total: number;
+  total_co2_kg: number;
+  total_delay_minutes: number;
+  completed_missions: number;
+  total_missions: number;
   incidents_resolved: number;
 }
 
@@ -38,10 +38,10 @@ export const StatsCards = () => {
       if (data) {
         const normalized: Statistics = {
           total_km: Number(data.total_km ?? 0),
-          co2_saved: Number(data.co2_saved ?? 0),
-          total_delays_minutes: Number(data.total_delays_minutes ?? 0),
-          missions_completed: Number(data.missions_completed ?? 0),
-          missions_total: Number(data.missions_total ?? 0),
+          total_co2_kg: Number(data.total_co2_kg ?? 0),
+          total_delay_minutes: Number(data.total_delay_minutes ?? 0),
+          completed_missions: Number(data.completed_missions ?? 0),
+          total_missions: Number(data.total_missions ?? 0),
           incidents_resolved: Number(data.incidents_resolved ?? 0),
         };
         console.log('✅ Stats card data fetched (normalised):', normalized);
@@ -68,7 +68,7 @@ export const StatsCards = () => {
     {
       icon: Leaf,
       label: "CO₂ économisé",
-      value: `${stats.co2_saved.toFixed(1)} kg`,
+      value: `${stats.total_co2_kg.toFixed(1)} kg`,
       color: "text-success",
       borderColor: "success",
       bgColor: "bg-success/5",
@@ -76,15 +76,15 @@ export const StatsCards = () => {
     {
       icon: Clock,
       label: "Retards cumulés",
-      value: `${stats.total_delays_minutes} min`,
-      color: stats.total_delays_minutes > 30 ? "text-danger" : stats.total_delays_minutes > 15 ? "text-warning" : "text-success",
-      borderColor: stats.total_delays_minutes > 30 ? "danger" : stats.total_delays_minutes > 15 ? "warning" : "success",
-      bgColor: stats.total_delays_minutes > 30 ? "bg-danger/5" : stats.total_delays_minutes > 15 ? "bg-warning/5" : "bg-success/5",
+      value: `${stats.total_delay_minutes} min`,
+      color: stats.total_delay_minutes > 30 ? "text-danger" : stats.total_delay_minutes > 15 ? "text-warning" : "text-success",
+      borderColor: stats.total_delay_minutes > 30 ? "danger" : stats.total_delay_minutes > 15 ? "warning" : "success",
+      bgColor: stats.total_delay_minutes > 30 ? "bg-danger/5" : stats.total_delay_minutes > 15 ? "bg-warning/5" : "bg-success/5",
     },
     {
       icon: Truck,
       label: "Missions",
-      value: `${stats.missions_completed} / ${stats.missions_total}`,
+      value: `${stats.completed_missions} / ${stats.total_missions}`,
       color: "text-info",
       borderColor: "info",
       bgColor: "bg-info/5",

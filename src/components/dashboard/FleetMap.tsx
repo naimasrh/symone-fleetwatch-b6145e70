@@ -168,10 +168,10 @@ export const FleetMap = () => {
             <div style="font-size: 0.875rem; display: flex; flex-direction: column; gap: 0.25rem;">
               <p><strong>Chauffeur:</strong> ${vehicle.driver_name || 'N/A'}</p>
               <p><strong>Type:</strong> ${vehicle.type}</p>
-              ${vehicle.origin && vehicle.destination ? `
+              ${vehicle.origin_address && vehicle.destination_address ? `
                 <p style="font-size: 0.75rem;">
                   <strong>Trajet:</strong><br />
-                  ${vehicle.origin} → ${vehicle.destination}
+                  ${vehicle.origin_address} → ${vehicle.destination_address}
                 </p>
               ` : ''}
               <p>
@@ -180,7 +180,7 @@ export const FleetMap = () => {
                   ${getStatusLabel(vehicle.mission_status, vehicle.delay_minutes)}
                 </span>
               </p>
-              ${vehicle.speed ? `<p><strong>Vitesse:</strong> ${vehicle.speed} km/h</p>` : ''}
+              ${vehicle.speed_kmh ? `<p><strong>Vitesse:</strong> ${vehicle.speed_kmh} km/h</p>` : ''}
               <p style="font-size: 0.75rem; opacity: 0.7; padding-top: 0.25rem;">
                 GPS: ${vehicle.latitude.toFixed(4)}, ${vehicle.longitude.toFixed(4)}
               </p>

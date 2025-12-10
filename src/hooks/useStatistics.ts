@@ -3,11 +3,11 @@ import { supabase } from '@/lib/supabase-external';
 
 interface DailyStats {
   date: string;
-  missions_total: number;
-  missions_completed: number;
+  total_missions: number;
+  completed_missions: number;
   total_km: number;
-  co2_saved: number;
-  total_delays_minutes: number;
+  total_co2_kg: number;
+  total_delay_minutes: number;
 }
 
 interface VehicleStats {
@@ -54,8 +54,8 @@ const calculatePercentChange = (oldVal: number, newVal: number): number => {
 };
 
 const calculateKPIs = (last7Days: DailyStats[], missionStatus: MissionStatusStats[]): KPIs => {
-  const weeklyMissions = last7Days.reduce((acc, day) => acc + day.missions_total, 0);
-  const totalCO2 = Number(last7Days.reduce((acc, day) => acc + day.co2_saved, 0).toFixed(2));
+  const weeklyMissions = last7Days.reduce((acc, day) => acc + day.total_missions, 0);
+  const totalCO2 = Number(last7Days.reduce((acc, day) => acc + day.total_co2_kg, 0).toFixed(2));
   
   const totalMissions = missionStatus.reduce((acc, s) => acc + s.count, 0);
   const completedCount = missionStatus.find(s => s.status === 'completed')?.count || 0;
@@ -63,13 +63,13 @@ const calculateKPIs = (last7Days: DailyStats[], missionStatus: MissionStatusStat
   
   const customerSat = Number((4.2 + Math.random() * 0.6).toFixed(1));
   
-  const today = last7Days[last7Days.length - 1] || { missions_total: 0, co2_saved: 0, missions_completed: 0 };
-  const yesterday = last7Days[last7Days.length - 2] || { missions_total: 0, co2_saved: 0, missions_completed: 0 };
+  const today = last7Days[last7Days.length - 1] || { total_missions: 0, total_co2_kg: 0, completed_missions: 0 };
+  const yesterday = last7Days[last7Days.length - 2] || { total_missions: 0, total_co2_kg: 0, completed_missions: 0 };
   
   const comparison = {
-    missions: calculatePercentChange(yesterday.missions_total, today.missions_total),
-    co2: calculatePercentChange(yesterday.co2_saved, today.co2_saved),
-    onTime: calculatePercentChange(yesterday.missions_completed, today.missions_completed),
+    missions: calculatePercentChange(yesterday.total_missions, today.total_missions),
+    co2: calculatePercentChange(yesterday.total_co2_kg, today.total_co2_kg),
+    onTime: calculatePercentChange(yesterday.completed_missions, today.completed_missions),
     satisfaction: 0,
   };
   
