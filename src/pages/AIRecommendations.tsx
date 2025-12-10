@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-external";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import RecommendationFilters from "@/components/recommendations/RecommendationFilters";
 import RecommendationCard from "@/components/recommendations/RecommendationCard";
-import MissionDetailsDialog from "@/components/missions/MissionDetailsDialog";
-import { Brain } from "lucide-react";
 
 interface Recommendation {
   id: string;
@@ -17,37 +16,12 @@ interface Recommendation {
   status: string;
   sent_at: string | null;
   created_at: string;
-  mission_enriched: {
-    id: string;
+  missions: {
     origin: string;
     destination: string;
-    status: string;
-    delay_minutes: number;
-    distance_km: number;
-    scheduled_start: string;
-    actual_start: string | null;
-    scheduled_end: string;
-    actual_end: string | null;
-    driver_id: string;
-    vehicle_id: string;
-    driver_name: string | null;
-    plate_number: string | null;
-  } | null;
-}
-
-interface MissionForDialog {
-  id: string;
-  origin_address: string;
-  destination_address: string;
-  status: string;
-  delay_minutes: number;
-  distance_km: number;
-  scheduled_start: string;
-  actual_start: string | null;
-  scheduled_end: string;
-  actual_end: string | null;
-  driver_id: string;
-  vehicle_id: string;
+    drivers: { name: string };
+    vehicles: { plate_number: string };
+  };
 }
 
 const AIRecommendations = () => {
@@ -57,10 +31,6 @@ const AIRecommendations = () => {
   const [selectedPriority, setSelectedPriority] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
-  
-  // Mission details dialog state
-  const [showMissionDetails, setShowMissionDetails] = useState(false);
-  const [selectedMission, setSelectedMission] = useState<MissionForDialog | null>(null);
 
   useEffect(() => {
     fetchRecommendations();
@@ -91,39 +61,29 @@ const AIRecommendations = () => {
   }, [recommendations, selectedPriority, selectedStatus, selectedType]);
 
   const fetchRecommendations = async () => {
-    // Calculate 24h ago timestamp
-    const twentyFourHoursAgo = new Date();
-    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-
-    // Use the enriched view which already has driver_name and plate_number
     const { data, error } = await supabase
       .from('ai_recommendations')
       .select(`
         *,
-        mission_enriched!ai_recommendations_mission_id_fkey (
-          id,
+        missions (
           origin,
           destination,
-          status,
-          delay_minutes,
-          distance_km,
-          scheduled_start,
-          actual_start,
-          scheduled_end,
-          actual_end,
-          driver_id,
-          vehicle_id,
-          driver_name,
-          plate_number
+          drivers (name),
+          vehicles (plate_number)
         )
       `)
-      .gte('created_at', twentyFourHoursAgo.toISOString())
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('❌ RECOMMENDATIONS ERROR:', error);
+      console.error('❌ RECOMMENDATIONS ERROR - Détails complets:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        fullError: error
+      });
     } else {
-      console.log(`✅ Fetched ${data?.length || 0} recommendations (last 24h)`);
+      console.log(`✅ Fetched ${data?.length || 0} recommendations`);
       setRecommendations(data || []);
     }
     setIsLoading(false);
@@ -147,31 +107,15 @@ const AIRecommendations = () => {
     setFilteredRecommendations(filtered);
   };
 
-  const handleViewMission = (recommendation: Recommendation) => {
-    const mission = recommendation.mission_enriched;
-    if (!mission) return;
-    
-    setSelectedMission({
-      id: mission.id,
-      origin_address: mission.origin,
-      destination_address: mission.destination,
-      status: mission.status,
-      delay_minutes: mission.delay_minutes,
-      distance_km: mission.distance_km,
-      scheduled_start: mission.scheduled_start,
-      actual_start: mission.actual_start,
-      scheduled_end: mission.scheduled_end,
-      actual_end: mission.actual_end,
-      driver_id: mission.driver_id,
-      vehicle_id: mission.vehicle_id,
-    });
-    setShowMissionDetails(true);
-  };
-
-  // Count by status
-  const pendingCount = filteredRecommendations.filter(r => r.status === 'pending').length;
-  const sentCount = filteredRecommendations.filter(r => r.status === 'sent').length;
-  const dismissedCount = filteredRecommendations.filter(r => r.status === 'dismissed').length;
+  // Group recommendations by mission
+  const groupedRecommendations = filteredRecommendations.reduce((acc, rec) => {
+    const key = `${rec.missions.origin} → ${rec.missions.destination}`;
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(rec);
+    return acc;
+  }, {} as Record<string, Recommendation[]>);
 
   if (isLoading) {
     return (
@@ -189,34 +133,16 @@ const AIRecommendations = () => {
 
   return (
     <div className="p-3 md:p-6 space-y-4 md:space-y-6">
-      {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Brain className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Recommandations IA</h1>
-            <p className="text-xs md:text-sm text-muted-foreground mt-1">
-              Recommandations des dernières 24h • Mise à jour en temps réel
-            </p>
-          </div>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">Recommandations IA</h1>
+          <p className="text-xs md:text-sm text-muted-foreground mt-1">
+            Recommandations générées automatiquement pour optimiser les missions
+          </p>
         </div>
-        
-        {/* Status badges */}
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary" className="text-sm px-3 py-1">
-            {pendingCount} en attente
-          </Badge>
-          <Badge className="bg-green-500 hover:bg-green-600 text-sm px-3 py-1">
-            {sentCount} envoyée{sentCount > 1 ? 's' : ''}
-          </Badge>
-          {dismissedCount > 0 && (
-            <Badge variant="outline" className="text-sm px-3 py-1">
-              {dismissedCount} rejetée{dismissedCount > 1 ? 's' : ''}
-            </Badge>
-          )}
-        </div>
+        <Badge variant="outline" className="text-sm md:text-lg px-3 md:px-4 py-1 justify-center">
+          {filteredRecommendations.length} recommandation{filteredRecommendations.length > 1 ? 's' : ''}
+        </Badge>
       </div>
 
       <RecommendationFilters
@@ -229,34 +155,27 @@ const AIRecommendations = () => {
       />
 
       {filteredRecommendations.length === 0 ? (
-        <div className="text-center py-12 md:py-16">
-          <Brain className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-          <p className="text-muted-foreground text-base md:text-lg">
-            Aucune recommandation dans les dernières 24h
-          </p>
-          <p className="text-muted-foreground/70 text-sm mt-1">
-            Les nouvelles recommandations apparaîtront ici automatiquement
-          </p>
+        <div className="text-center py-8 md:py-12">
+          <p className="text-muted-foreground text-base md:text-lg">Aucune recommandation trouvée</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-          {filteredRecommendations.map((rec) => (
-            <RecommendationCard
-              key={rec.id}
-              recommendation={rec}
-              onUpdate={fetchRecommendations}
-              onViewMission={() => handleViewMission(rec)}
-            />
+        <div className="space-y-6 md:space-y-8">
+          {Object.entries(groupedRecommendations).map(([missionKey, recs]) => (
+            <div key={missionKey}>
+              <h2 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">{missionKey}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+                {recs.map((rec) => (
+                  <RecommendationCard
+                    key={rec.id}
+                    recommendation={rec}
+                    onUpdate={fetchRecommendations}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}
-
-      {/* Mission Details Dialog */}
-      <MissionDetailsDialog
-        open={showMissionDetails}
-        onOpenChange={setShowMissionDetails}
-        mission={selectedMission}
-      />
     </div>
   );
 };
