@@ -17,7 +17,7 @@ interface Recommendation {
   status: string;
   sent_at: string | null;
   created_at: string;
-  missions: {
+  mission_enriched: {
     id: string;
     origin: string;
     destination: string;
@@ -30,9 +30,9 @@ interface Recommendation {
     actual_end: string | null;
     driver_id: string;
     vehicle_id: string;
-    drivers: { name: string };
-    vehicles: { plate_number: string };
-  };
+    driver_name: string | null;
+    plate_number: string | null;
+  } | null;
 }
 
 interface RecommendationCardProps {
@@ -123,7 +123,7 @@ const RecommendationCard = ({ recommendation, onUpdate, onViewMission }: Recomme
     } else {
       toast({
         title: "Recommandation envoyée",
-        description: `Envoyée à ${recommendation.missions.drivers.name}`,
+        description: `Envoyée à ${recommendation.mission_enriched?.driver_name || 'conducteur'}`,
       });
       onUpdate();
     }
@@ -175,14 +175,16 @@ const RecommendationCard = ({ recommendation, onUpdate, onViewMission }: Recomme
         </div>
 
         {/* Mission Info */}
-        <div className="mt-3 p-2 bg-muted/50 rounded-lg">
-          <p className="text-sm font-medium">
-            {recommendation.missions.origin} → {recommendation.missions.destination}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            👤 {recommendation.missions.drivers.name} • 🚐 {recommendation.missions.vehicles.plate_number}
-          </p>
-        </div>
+        {recommendation.mission_enriched && (
+          <div className="mt-3 p-2 bg-muted/50 rounded-lg">
+            <p className="text-sm font-medium">
+              {recommendation.mission_enriched.origin} → {recommendation.mission_enriched.destination}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              👤 {recommendation.mission_enriched.driver_name || 'N/A'} • 🚐 {recommendation.mission_enriched.plate_number || 'N/A'}
+            </p>
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-3 pt-2">
