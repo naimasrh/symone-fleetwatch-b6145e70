@@ -11,7 +11,7 @@ interface DailyStats {
 }
 
 interface VehicleStats {
-  plate_number: string;
+  license_plate: string;
   type: string;
   total_km: number;
 }
@@ -123,7 +123,7 @@ export const useStatistics = (): Statistics => {
 
         const { data: vehiclesData, error: vehiclesError } = await supabase
           .from('vehicles')
-          .select('id, plate_number, type');
+          .select('id, license_plate, type');
 
         if (missionsVehiclesError) {
           console.error('❌ STATISTICS ERROR (missions for vehicles):', missionsVehiclesError);
@@ -135,22 +135,22 @@ export const useStatistics = (): Statistics => {
         }
 
         // Create a map of vehicle_id -> vehicle info
-        const vehicleInfoMap = new Map<string, { plate_number: string; type: string }>();
+        const vehicleInfoMap = new Map<string, { license_plate: string; type: string }>();
         (vehiclesData || []).forEach((v: any) => {
-          vehicleInfoMap.set(v.id, { plate_number: v.plate_number, type: v.type });
+          vehicleInfoMap.set(v.id, { license_plate: v.license_plate, type: v.type });
         });
 
-        const vehicleMap = new Map<string, { plate_number: string; type: string; total_km: number }>();
+        const vehicleMap = new Map<string, { license_plate: string; type: string; total_km: number }>();
         (missionsForVehicles || []).forEach((mission: any) => {
           const vehicleInfo = vehicleInfoMap.get(mission.vehicle_id);
           if (vehicleInfo) {
-            const key = vehicleInfo.plate_number;
+            const key = vehicleInfo.license_plate;
             const existing = vehicleMap.get(key);
             if (existing) {
               existing.total_km += mission.distance_km;
             } else {
               vehicleMap.set(key, {
-                plate_number: vehicleInfo.plate_number,
+                license_plate: vehicleInfo.license_plate,
                 type: vehicleInfo.type,
                 total_km: mission.distance_km
               });

@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase-external";
 
 export interface FleetVehicle {
   vehicle_id: string;
-  plate_number: string;
+  license_plate: string;
   type: string;
   driver_name: string | null;
   mission_id: string | null;

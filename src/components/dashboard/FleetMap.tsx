@@ -164,7 +164,7 @@ export const FleetMap = () => {
         // Create popup content
         const popupContent = `
           <div style="min-width: 200px;">
-            <h3 style="font-weight: bold; font-size: 1rem; margin-bottom: 0.5rem;">${vehicle.plate_number}</h3>
+            <h3 style="font-weight: bold; font-size: 1rem; margin-bottom: 0.5rem;">${vehicle.license_plate}</h3>
             <div style="font-size: 0.875rem; display: flex; flex-direction: column; gap: 0.25rem;">
               <p><strong>Chauffeur:</strong> ${vehicle.driver_name || 'N/A'}</p>
               <p><strong>Type:</strong> ${vehicle.type}</p>
@@ -191,7 +191,7 @@ export const FleetMap = () => {
         marker.bindPopup(popupContent);
         markersRef.current.push(marker);
       } catch (e) {
-        console.error('Error creating marker for vehicle:', vehicle.plate_number, e);
+        console.error('Error creating marker for vehicle:', vehicle.license_plate, e);
       }
     });
 
