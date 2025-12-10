@@ -44,7 +44,7 @@ const Statistics = () => {
     autoTable(doc, {
       startY: finalY1 + 20,
       head: [['Vehicule', 'Kilometres']],
-      body: topVehicles.map(v => [v.plate_number, `${v.total_km} km`])
+      body: topVehicles.map(v => [v.license_plate, `${v.total_km} km`])
     });
     
     // Tableau des chauffeurs
@@ -247,7 +247,7 @@ const Statistics = () => {
               >
                 <BarChart data={topVehicles}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="plate_number" className="text-xs" />
+                  <XAxis dataKey="license_plate" className="text-xs" />
                   <YAxis className="text-xs" />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Bar dataKey="total_km" fill="hsl(var(--info))" radius={[8, 8, 0, 0]} />
