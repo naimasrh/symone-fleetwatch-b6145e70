@@ -25,7 +25,7 @@ interface Mission {
   driver_id: string;
   vehicle_id: string;
   driver_name?: string;
-  vehicle_license_plate?: string;
+  license_plate?: string;
 }
 
 const Missions = () => {
@@ -93,7 +93,9 @@ const Missions = () => {
     if (selectedStatus === "delayed") {
       filtered = filtered.filter(m => m.delay_minutes > 0 && (m.status === "in-progress" || m.status === "in_progress"));
     } else if (selectedStatus !== "all") {
-      filtered = filtered.filter(m => m.status === selectedStatus);
+      // Handle both status naming conventions
+      const statusVariants = selectedStatus === 'planned' ? ['planned', 'scheduled'] : [selectedStatus];
+      filtered = filtered.filter(m => statusVariants.includes(m.status));
     }
 
     setFilteredMissions(filtered);
@@ -193,7 +195,7 @@ const Missions = () => {
                 <TableRow key={mission.id}>
                   <TableCell className="font-medium whitespace-nowrap">{mission.driver_name || 'Non assigné'}</TableCell>
                   <TableCell className="whitespace-nowrap">
-                    <p className="font-medium">{mission.vehicle_license_plate || 'N/A'}</p>
+                    <p className="font-medium">{mission.license_plate || 'N/A'}</p>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">{mission.origin_address}</TableCell>
                   <TableCell className="hidden md:table-cell">{mission.destination_address}</TableCell>

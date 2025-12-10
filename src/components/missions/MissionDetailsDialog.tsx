@@ -27,7 +27,7 @@ interface Mission {
 interface GPSPosition {
   latitude: number;
   longitude: number;
-  speed: number;
+  speed_kmh: number;
   heading: number;
   timestamp: string;
 }
@@ -191,7 +191,7 @@ const MissionDetailsDialog = ({ open, onOpenChange, mission }: MissionDetailsDia
                     </div>
                     <div>
                       <p className="text-sm font-medium">Vitesse:</p>
-                      <p className="text-sm text-muted-foreground">{gpsPosition.speed} km/h</p>
+                      <p className="text-sm text-muted-foreground">{gpsPosition.speed_kmh} km/h</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium">Direction:</p>

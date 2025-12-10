@@ -12,7 +12,7 @@ interface Recommendation {
   mission_id: string;
   type: string;
   message: string;
-  impact: string | null;
+  impact_description: string | null;
   priority: string;
   status: string;
   sent_at: string | null;
@@ -169,10 +169,10 @@ const RecommendationCard = ({ recommendation, onUpdate, onViewMission }: Recomme
         </div>
 
         {/* Impact */}
-        {recommendation.impact && (
+        {recommendation.impact_description && (
           <div className="p-3 rounded-lg bg-muted/50 border border-border">
             <p className="text-xs font-medium text-muted-foreground mb-1">Impact estimé</p>
-            <p className="text-sm">{recommendation.impact}</p>
+            <p className="text-sm">{recommendation.impact_description}</p>
           </div>
         )}
 

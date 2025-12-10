@@ -11,7 +11,7 @@ interface Recommendation {
   mission_id: string;
   type: string;
   message: string;
-  impact: string | null;
+  impact_description: string | null;
   priority: string;
   status: string;
   sent_at: string | null;
@@ -79,7 +79,7 @@ const AIRecommendations = () => {
 
     const { data, error } = await supabase
       .from('ai_recommendations')
-      .select('id, mission_id, type, message, impact, priority, status, sent_at, created_at')
+      .select('id, mission_id, type, message, impact_description, priority, status, sent_at, created_at')
       .gte('created_at', twentyFourHoursAgo)
       .order('created_at', { ascending: false });
 
@@ -111,12 +111,12 @@ const AIRecommendations = () => {
   };
 
   const handleViewMission = async (missionId: string) => {
-    // Fetch mission details from mission_enriched view
+    // Fetch mission details directly from missions table
     const { data, error } = await supabase
-      .from('mission_enriched')
+      .from('missions')
       .select('*')
       .eq('id', missionId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching mission:', error);
@@ -126,8 +126,8 @@ const AIRecommendations = () => {
     if (data) {
       setSelectedMission({
         id: data.id,
-        origin_address: data.origin || '',
-        destination_address: data.destination || '',
+        origin_address: data.origin_address || '',
+        destination_address: data.destination_address || '',
         status: data.status || 'planned',
         delay_minutes: data.delay_minutes || 0,
         distance_km: data.distance_km || 0,
