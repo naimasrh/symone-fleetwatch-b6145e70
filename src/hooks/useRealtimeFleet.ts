@@ -32,7 +32,7 @@ export const useRealtimeFleet = () => {
       // Fetch vehicles with their current missions and GPS positions
       const { data: vehicles, error: vehiclesError } = await supabase
         .from('vehicles')
-        .select('id, license_plate, type, current_driver_id');
+        .select('id, license_plate, type');
       
       if (vehiclesError) {
         console.error('❌ FLEET ERROR - vehicles:', vehiclesError);
@@ -93,7 +93,7 @@ export const useRealtimeFleet = () => {
       const fleetVehicles: FleetVehicle[] = (vehicles || []).map(vehicle => {
         const mission = missionMap.get(vehicle.id);
         const gps = gpsMap.get(vehicle.id);
-        const driverName = vehicle.current_driver_id ? driverMap.get(vehicle.current_driver_id) : null;
+        const driverName = mission?.driver_id ? driverMap.get(mission.driver_id) : null;
 
         return {
           vehicle_id: vehicle.id,
