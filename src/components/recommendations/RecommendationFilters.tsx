@@ -27,9 +27,9 @@ const RecommendationFilters = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Toutes</SelectItem>
-            <SelectItem value="high">Élevée</SelectItem>
-            <SelectItem value="medium">Moyenne</SelectItem>
-            <SelectItem value="low">Faible</SelectItem>
+            <SelectItem value="élevé">Élevée</SelectItem>
+            <SelectItem value="moyen">Moyenne</SelectItem>
+            <SelectItem value="faible">Faible</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -57,10 +57,10 @@ const RecommendationFilters = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous</SelectItem>
-            <SelectItem value="speed">🚗 Vitesse</SelectItem>
-            <SelectItem value="break">☕ Pause</SelectItem>
-            <SelectItem value="route">🛣️ Itinéraire</SelectItem>
-            <SelectItem value="client_notification">📱 Client</SelectItem>
+            <SelectItem value="ajustement_vitesse">🚗 Vitesse</SelectItem>
+            <SelectItem value="suggestion_pause">☕ Pause</SelectItem>
+            <SelectItem value="changement_itineraire">🛣️ Itinéraire</SelectItem>
+            <SelectItem value="notification_client">📱 Client</SelectItem>
           </SelectContent>
         </Select>
       </div>

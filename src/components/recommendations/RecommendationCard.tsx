@@ -41,6 +41,9 @@ const priorityTranslations: Record<string, string> = {
   'high': 'Élevée',
   'medium': 'Moyenne',
   'low': 'Faible',
+  'élevé': 'Élevée',
+  'moyen': 'Moyenne',
+  'faible': 'Faible',
 };
 
 const statusTranslations: Record<string, string> = {
@@ -77,10 +80,10 @@ const RecommendationCard = ({ recommendation, onUpdate, onViewMission }: Recomme
 
   const getPriorityBadge = (priority: string) => {
     const label = priorityTranslations[priority] || priority;
-    if (priority === 'high') {
+    if (priority === 'high' || priority === 'élevé') {
       return <Badge className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">{label}</Badge>;
     }
-    if (priority === 'medium') {
+    if (priority === 'medium' || priority === 'moyen') {
       return <Badge className="bg-warning hover:bg-warning/90 text-warning-foreground">{label}</Badge>;
     }
     return <Badge className="bg-info hover:bg-info/90 text-info-foreground">{label}</Badge>;
